@@ -181,17 +181,29 @@ static void __init md_setup_drive(void)
 			partitioned ? "_d" : "", minor,
 			md_setup_args[ent].device_names);
 
+<<<<<<< HEAD
 		fd = sys_open(name, 0, 0);
+=======
+		fd = ksys_open(name, 0, 0);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		if (fd < 0) {
 			printk(KERN_ERR "md: open failed - cannot start "
 					"array %s\n", name);
 			continue;
 		}
+<<<<<<< HEAD
 		if (sys_ioctl(fd, SET_ARRAY_INFO, 0) == -EBUSY) {
 			printk(KERN_WARNING
 			       "md: Ignoring md=%d, already autodetected. (Use raid=noautodetect)\n",
 			       minor);
 			sys_close(fd);
+=======
+		if (ksys_ioctl(fd, SET_ARRAY_INFO, 0) == -EBUSY) {
+			printk(KERN_WARNING
+			       "md: Ignoring md=%d, already autodetected. (Use raid=noautodetect)\n",
+			       minor);
+			ksys_close(fd);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 			continue;
 		}
 
@@ -210,7 +222,11 @@ static void __init md_setup_drive(void)
 			ainfo.state = (1 << MD_SB_CLEAN);
 			ainfo.layout = 0;
 			ainfo.chunk_size = md_setup_args[ent].chunk;
+<<<<<<< HEAD
 			err = sys_ioctl(fd, SET_ARRAY_INFO, (long)&ainfo);
+=======
+			err = ksys_ioctl(fd, SET_ARRAY_INFO, (long)&ainfo);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 			for (i = 0; !err && i <= MD_SB_DISKS; i++) {
 				dev = devices[i];
 				if (!dev)
@@ -220,7 +236,12 @@ static void __init md_setup_drive(void)
 				dinfo.state = (1<<MD_DISK_ACTIVE)|(1<<MD_DISK_SYNC);
 				dinfo.major = MAJOR(dev);
 				dinfo.minor = MINOR(dev);
+<<<<<<< HEAD
 				err = sys_ioctl(fd, ADD_NEW_DISK, (long)&dinfo);
+=======
+				err = ksys_ioctl(fd, ADD_NEW_DISK,
+						 (long)&dinfo);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 			}
 		} else {
 			/* persistent */
@@ -230,11 +251,19 @@ static void __init md_setup_drive(void)
 					break;
 				dinfo.major = MAJOR(dev);
 				dinfo.minor = MINOR(dev);
+<<<<<<< HEAD
 				sys_ioctl(fd, ADD_NEW_DISK, (long)&dinfo);
 			}
 		}
 		if (!err)
 			err = sys_ioctl(fd, RUN_ARRAY, 0);
+=======
+				ksys_ioctl(fd, ADD_NEW_DISK, (long)&dinfo);
+			}
+		}
+		if (!err)
+			err = ksys_ioctl(fd, RUN_ARRAY, 0);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		if (err)
 			printk(KERN_WARNING "md: starting md%d failed\n", minor);
 		else {
@@ -243,11 +272,19 @@ static void __init md_setup_drive(void)
 			 * boot a kernel with devfs compiled in from partitioned md
 			 * array without it
 			 */
+<<<<<<< HEAD
 			sys_close(fd);
 			fd = sys_open(name, 0, 0);
 			sys_ioctl(fd, BLKRRPART, 0);
 		}
 		sys_close(fd);
+=======
+			ksys_close(fd);
+			fd = ksys_open(name, 0, 0);
+			ksys_ioctl(fd, BLKRRPART, 0);
+		}
+		ksys_close(fd);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	}
 }
 
@@ -294,10 +331,17 @@ static void __init autodetect_raid(void)
 
 	wait_for_device_probe();
 
+<<<<<<< HEAD
 	fd = sys_open("/dev/md0", 0, 0);
 	if (fd >= 0) {
 		sys_ioctl(fd, RAID_AUTORUN, raid_autopart);
 		sys_close(fd);
+=======
+	fd = ksys_open("/dev/md0", 0, 0);
+	if (fd >= 0) {
+		ksys_ioctl(fd, RAID_AUTORUN, raid_autopart);
+		ksys_close(fd);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	}
 }
 

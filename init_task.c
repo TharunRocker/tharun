@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: GPL-2.0
+<<<<<<< HEAD
 
 //Aditioal commands for GIT practice.Dont take
+=======
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 #include <linux/init_task.h>
 #include <linux/export.h>
 #include <linux/mqueue.h>

@@ -36,6 +36,7 @@ __setup("noinitrd", no_initrd);
 
 static int init_linuxrc(struct subprocess_info *info, struct cred *new)
 {
+<<<<<<< HEAD
 	sys_unshare(CLONE_FS | CLONE_FILES);
 	/* stdin/stdout/stderr for /linuxrc */
 	sys_open("/dev/console", O_RDWR, 0);
@@ -46,6 +47,18 @@ static int init_linuxrc(struct subprocess_info *info, struct cred *new)
 	sys_mount(".", "/", NULL, MS_MOVE, NULL);
 	sys_chroot(".");
 	sys_setsid();
+=======
+	ksys_unshare(CLONE_FS | CLONE_FILES);
+	/* stdin/stdout/stderr for /linuxrc */
+	ksys_open("/dev/console", O_RDWR, 0);
+	ksys_dup(0);
+	ksys_dup(0);
+	/* move initrd over / and chdir/chroot in initrd root */
+	ksys_chdir("/root");
+	ksys_mount(".", "/", NULL, MS_MOVE, NULL);
+	ksys_chroot(".");
+	ksys_setsid();
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	return 0;
 }
 
@@ -60,8 +73,13 @@ static void __init handle_initrd(void)
 	create_dev("/dev/root.old", Root_RAM0);
 	/* mount initrd on rootfs' /root */
 	mount_block_root("/dev/root.old", root_mountflags & ~MS_RDONLY);
+<<<<<<< HEAD
 	sys_mkdir("/old", 0700);
 	sys_chdir("/old");
+=======
+	ksys_mkdir("/old", 0700);
+	ksys_chdir("/old");
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 	/* try loading default modules from initrd */
 	load_default_modules();
@@ -81,6 +99,7 @@ static void __init handle_initrd(void)
 	current->flags &= ~PF_FREEZER_SKIP;
 
 	/* move initrd to rootfs' /old */
+<<<<<<< HEAD
 	sys_mount("..", ".", NULL, MS_MOVE, NULL);
 	/* switch root and cwd back to / of rootfs */
 	sys_chroot("..");
@@ -91,27 +110,56 @@ static void __init handle_initrd(void)
 	}
 
 	sys_chdir("/");
+=======
+	ksys_mount("..", ".", NULL, MS_MOVE, NULL);
+	/* switch root and cwd back to / of rootfs */
+	ksys_chroot("..");
+
+	if (new_decode_dev(real_root_dev) == Root_RAM0) {
+		ksys_chdir("/old");
+		return;
+	}
+
+	ksys_chdir("/");
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	ROOT_DEV = new_decode_dev(real_root_dev);
 	mount_root();
 
 	printk(KERN_NOTICE "Trying to move old root to /initrd ... ");
+<<<<<<< HEAD
 	error = sys_mount("/old", "/root/initrd", NULL, MS_MOVE, NULL);
 	if (!error)
 		printk("okay\n");
 	else {
 		int fd = sys_open("/dev/root.old", O_RDWR, 0);
+=======
+	error = ksys_mount("/old", "/root/initrd", NULL, MS_MOVE, NULL);
+	if (!error)
+		printk("okay\n");
+	else {
+		int fd = ksys_open("/dev/root.old", O_RDWR, 0);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		if (error == -ENOENT)
 			printk("/initrd does not exist. Ignored.\n");
 		else
 			printk("failed\n");
 		printk(KERN_NOTICE "Unmounting old root\n");
+<<<<<<< HEAD
 		sys_umount("/old", MNT_DETACH);
+=======
+		ksys_umount("/old", MNT_DETACH);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		printk(KERN_NOTICE "Trying to free ramdisk memory ... ");
 		if (fd < 0) {
 			error = fd;
 		} else {
+<<<<<<< HEAD
 			error = sys_ioctl(fd, BLKFLSBUF, 0);
 			sys_close(fd);
+=======
+			error = ksys_ioctl(fd, BLKFLSBUF, 0);
+			ksys_close(fd);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		}
 		printk(!error ? "okay\n" : "failed\n");
 	}
@@ -128,11 +176,19 @@ bool __init initrd_load(void)
 		 * mounted in the normal path.
 		 */
 		if (rd_load_image("/initrd.image") && ROOT_DEV != Root_RAM0) {
+<<<<<<< HEAD
 			sys_unlink("/initrd.image");
+=======
+			ksys_unlink("/initrd.image");
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 			handle_initrd();
 			return true;
 		}
 	}
+<<<<<<< HEAD
 	sys_unlink("/initrd.image");
+=======
+	ksys_unlink("/initrd.image");
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	return false;
 }

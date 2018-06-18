@@ -90,8 +90,13 @@ identify_ramdisk_image(int fd, int start_block, decompress_fn *decompressor)
 	/*
 	 * Read block 0 to test for compressed kernel
 	 */
+<<<<<<< HEAD
 	sys_lseek(fd, start_block * BLOCK_SIZE, 0);
 	sys_read(fd, buf, size);
+=======
+	ksys_lseek(fd, start_block * BLOCK_SIZE, 0);
+	ksys_read(fd, buf, size);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 	*decompressor = decompress_method(buf, size, &compress_name);
 	if (compress_name) {
@@ -136,8 +141,13 @@ identify_ramdisk_image(int fd, int start_block, decompress_fn *decompressor)
 	/*
 	 * Read 512 bytes further to check if cramfs is padded
 	 */
+<<<<<<< HEAD
 	sys_lseek(fd, start_block * BLOCK_SIZE + 0x200, 0);
 	sys_read(fd, buf, size);
+=======
+	ksys_lseek(fd, start_block * BLOCK_SIZE + 0x200, 0);
+	ksys_read(fd, buf, size);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 	if (cramfsb->magic == CRAMFS_MAGIC) {
 		printk(KERN_NOTICE
@@ -150,8 +160,13 @@ identify_ramdisk_image(int fd, int start_block, decompress_fn *decompressor)
 	/*
 	 * Read block 1 to test for minix and ext2 superblock
 	 */
+<<<<<<< HEAD
 	sys_lseek(fd, (start_block+1) * BLOCK_SIZE, 0);
 	sys_read(fd, buf, size);
+=======
+	ksys_lseek(fd, (start_block+1) * BLOCK_SIZE, 0);
+	ksys_read(fd, buf, size);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 	/* Try minix */
 	if (minixsb->s_magic == MINIX_SUPER_MAGIC ||
@@ -178,7 +193,11 @@ identify_ramdisk_image(int fd, int start_block, decompress_fn *decompressor)
 	       start_block);
 
 done:
+<<<<<<< HEAD
 	sys_lseek(fd, start_block * BLOCK_SIZE, 0);
+=======
+	ksys_lseek(fd, start_block * BLOCK_SIZE, 0);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	kfree(buf);
 	return nblocks;
 }
@@ -196,11 +215,19 @@ int __init rd_load_image(char *from)
 	char rotator[4] = { '|' , '/' , '-' , '\\' };
 #endif
 
+<<<<<<< HEAD
 	out_fd = sys_open("/dev/ram", O_RDWR, 0);
 	if (out_fd < 0)
 		goto out;
 
 	in_fd = sys_open(from, O_RDONLY, 0);
+=======
+	out_fd = ksys_open("/dev/ram", O_RDWR, 0);
+	if (out_fd < 0)
+		goto out;
+
+	in_fd = ksys_open(from, O_RDONLY, 0);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	if (in_fd < 0)
 		goto noclose_input;
 
@@ -218,7 +245,11 @@ int __init rd_load_image(char *from)
 	 * NOTE NOTE: nblocks is not actually blocks but
 	 * the number of kibibytes of data to load into a ramdisk.
 	 */
+<<<<<<< HEAD
 	if (sys_ioctl(out_fd, BLKGETSIZE, (unsigned long)&rd_blocks) < 0)
+=======
+	if (ksys_ioctl(out_fd, BLKGETSIZE, (unsigned long)&rd_blocks) < 0)
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		rd_blocks = 0;
 	else
 		rd_blocks >>= 1;
@@ -232,7 +263,11 @@ int __init rd_load_image(char *from)
 	/*
 	 * OK, time to copy in the data
 	 */
+<<<<<<< HEAD
 	if (sys_ioctl(in_fd, BLKGETSIZE, (unsigned long)&devblocks) < 0)
+=======
+	if (ksys_ioctl(in_fd, BLKGETSIZE, (unsigned long)&devblocks) < 0)
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		devblocks = 0;
 	else
 		devblocks >>= 1;
@@ -255,22 +290,37 @@ int __init rd_load_image(char *from)
 		nblocks, ((nblocks-1)/devblocks)+1, nblocks>devblocks ? "s" : "");
 	for (i = 0, disk = 1; i < nblocks; i++) {
 		if (i && (i % devblocks == 0)) {
+<<<<<<< HEAD
 			printk("done disk #%d.\n", disk++);
 			rotate = 0;
 			if (sys_close(in_fd)) {
+=======
+			pr_cont("done disk #%d.\n", disk++);
+			rotate = 0;
+			if (ksys_close(in_fd)) {
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 				printk("Error closing the disk.\n");
 				goto noclose_input;
 			}
 			change_floppy("disk #%d", disk);
+<<<<<<< HEAD
 			in_fd = sys_open(from, O_RDONLY, 0);
+=======
+			in_fd = ksys_open(from, O_RDONLY, 0);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 			if (in_fd < 0)  {
 				printk("Error opening disk.\n");
 				goto noclose_input;
 			}
 			printk("Loading disk #%d... ", disk);
 		}
+<<<<<<< HEAD
 		sys_read(in_fd, buf, BLOCK_SIZE);
 		sys_write(out_fd, buf, BLOCK_SIZE);
+=======
+		ksys_read(in_fd, buf, BLOCK_SIZE);
+		ksys_write(out_fd, buf, BLOCK_SIZE);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 #if !defined(CONFIG_S390)
 		if (!(i % 16)) {
 			pr_cont("%c\b", rotator[rotate & 0x3]);
@@ -278,17 +328,30 @@ int __init rd_load_image(char *from)
 		}
 #endif
 	}
+<<<<<<< HEAD
 	printk("done.\n");
+=======
+	pr_cont("done.\n");
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 successful_load:
 	res = 1;
 done:
+<<<<<<< HEAD
 	sys_close(in_fd);
 noclose_input:
 	sys_close(out_fd);
 out:
 	kfree(buf);
 	sys_unlink("/dev/ram");
+=======
+	ksys_close(in_fd);
+noclose_input:
+	ksys_close(out_fd);
+out:
+	kfree(buf);
+	ksys_unlink("/dev/ram");
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	return res;
 }
 
@@ -307,7 +370,11 @@ static int crd_infd, crd_outfd;
 
 static long __init compr_fill(void *buf, unsigned long len)
 {
+<<<<<<< HEAD
 	long r = sys_read(crd_infd, buf, len);
+=======
+	long r = ksys_read(crd_infd, buf, len);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	if (r < 0)
 		printk(KERN_ERR "RAMDISK: error while reading compressed data");
 	else if (r == 0)
@@ -317,7 +384,11 @@ static long __init compr_fill(void *buf, unsigned long len)
 
 static long __init compr_flush(void *window, unsigned long outcnt)
 {
+<<<<<<< HEAD
 	long written = sys_write(crd_outfd, window, outcnt);
+=======
+	long written = ksys_write(crd_outfd, window, outcnt);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	if (written != outcnt) {
 		if (decompress_error == 0)
 			printk(KERN_ERR

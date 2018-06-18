@@ -27,7 +27,11 @@ static ssize_t __init xwrite(int fd, const char *p, size_t count)
 
 	/* sys_write only can write MAX_RW_COUNT aka 2G-4K bytes at most */
 	while (count) {
+<<<<<<< HEAD
 		ssize_t rv = sys_write(fd, p, count);
+=======
+		ssize_t rv = ksys_write(fd, p, count);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 		if (rv < 0) {
 			if (rv == -EINTR || rv == -EAGAIN)
@@ -306,7 +310,11 @@ static int __init maybe_link(void)
 	if (nlink >= 2) {
 		char *old = find_link(major, minor, ino, mode, collected);
 		if (old)
+<<<<<<< HEAD
 			return (sys_link(old, collected) < 0) ? -1 : 1;
+=======
+			return (ksys_link(old, collected) < 0) ? -1 : 1;
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	}
 	return 0;
 }
@@ -317,9 +325,15 @@ static void __init clean_path(char *path, umode_t fmode)
 
 	if (!vfs_lstat(path, &st) && (st.mode ^ fmode) & S_IFMT) {
 		if (S_ISDIR(st.mode))
+<<<<<<< HEAD
 			sys_rmdir(path);
 		else
 			sys_unlink(path);
+=======
+			ksys_rmdir(path);
+		else
+			ksys_unlink(path);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	}
 }
 
@@ -340,6 +354,7 @@ static int __init do_name(void)
 			int openflags = O_WRONLY|O_CREAT;
 			if (ml != 1)
 				openflags |= O_TRUNC;
+<<<<<<< HEAD
 			wfd = sys_open(collected, openflags, mode);
 
 			if (wfd >= 0) {
@@ -347,21 +362,42 @@ static int __init do_name(void)
 				sys_fchmod(wfd, mode);
 				if (body_len)
 					sys_ftruncate(wfd, body_len);
+=======
+			wfd = ksys_open(collected, openflags, mode);
+
+			if (wfd >= 0) {
+				ksys_fchown(wfd, uid, gid);
+				ksys_fchmod(wfd, mode);
+				if (body_len)
+					ksys_ftruncate(wfd, body_len);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 				vcollected = kstrdup(collected, GFP_KERNEL);
 				state = CopyFile;
 			}
 		}
 	} else if (S_ISDIR(mode)) {
+<<<<<<< HEAD
 		sys_mkdir(collected, mode);
 		sys_chown(collected, uid, gid);
 		sys_chmod(collected, mode);
+=======
+		ksys_mkdir(collected, mode);
+		ksys_chown(collected, uid, gid);
+		ksys_chmod(collected, mode);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		dir_add(collected, mtime);
 	} else if (S_ISBLK(mode) || S_ISCHR(mode) ||
 		   S_ISFIFO(mode) || S_ISSOCK(mode)) {
 		if (maybe_link() == 0) {
+<<<<<<< HEAD
 			sys_mknod(collected, mode, rdev);
 			sys_chown(collected, uid, gid);
 			sys_chmod(collected, mode);
+=======
+			ksys_mknod(collected, mode, rdev);
+			ksys_chown(collected, uid, gid);
+			ksys_chmod(collected, mode);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 			do_utime(collected, mtime);
 		}
 	}
@@ -373,7 +409,11 @@ static int __init do_copy(void)
 	if (byte_count >= body_len) {
 		if (xwrite(wfd, victim, body_len) != body_len)
 			error("write error");
+<<<<<<< HEAD
 		sys_close(wfd);
+=======
+		ksys_close(wfd);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		do_utime(vcollected, mtime);
 		kfree(vcollected);
 		eat(body_len);
@@ -392,8 +432,13 @@ static int __init do_symlink(void)
 {
 	collected[N_ALIGN(name_len) + body_len] = '\0';
 	clean_path(collected, 0);
+<<<<<<< HEAD
 	sys_symlink(collected + N_ALIGN(name_len), collected);
 	sys_lchown(collected, uid, gid);
+=======
+	ksys_symlink(collected + N_ALIGN(name_len), collected);
+	ksys_lchown(collected, uid, gid);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	do_utime(collected, mtime);
 	state = SkipIt;
 	next_state = Reset;
@@ -567,19 +612,31 @@ static void __init clean_rootfs(void)
 	struct linux_dirent64 *dirp;
 	int num;
 
+<<<<<<< HEAD
 	fd = sys_open("/", O_RDONLY, 0);
+=======
+	fd = ksys_open("/", O_RDONLY, 0);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	WARN_ON(fd < 0);
 	if (fd < 0)
 		return;
 	buf = kzalloc(BUF_SIZE, GFP_KERNEL);
 	WARN_ON(!buf);
 	if (!buf) {
+<<<<<<< HEAD
 		sys_close(fd);
+=======
+		ksys_close(fd);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		return;
 	}
 
 	dirp = buf;
+<<<<<<< HEAD
 	num = sys_getdents64(fd, dirp, BUF_SIZE);
+=======
+	num = ksys_getdents64(fd, dirp, BUF_SIZE);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	while (num > 0) {
 		while (num > 0) {
 			struct kstat st;
@@ -589,9 +646,15 @@ static void __init clean_rootfs(void)
 			WARN_ON_ONCE(ret);
 			if (!ret) {
 				if (S_ISDIR(st.mode))
+<<<<<<< HEAD
 					sys_rmdir(dirp->d_name);
 				else
 					sys_unlink(dirp->d_name);
+=======
+					ksys_rmdir(dirp->d_name);
+				else
+					ksys_unlink(dirp->d_name);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 			}
 
 			num -= dirp->d_reclen;
@@ -599,10 +662,17 @@ static void __init clean_rootfs(void)
 		}
 		dirp = buf;
 		memset(buf, 0, BUF_SIZE);
+<<<<<<< HEAD
 		num = sys_getdents64(fd, dirp, BUF_SIZE);
 	}
 
 	sys_close(fd);
+=======
+		num = ksys_getdents64(fd, dirp, BUF_SIZE);
+	}
+
+	ksys_close(fd);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	kfree(buf);
 }
 #endif
@@ -629,7 +699,11 @@ static int __init populate_rootfs(void)
 		}
 		printk(KERN_INFO "rootfs image is not initramfs (%s)"
 				"; looks like an initrd\n", err);
+<<<<<<< HEAD
 		fd = sys_open("/initrd.image",
+=======
+		fd = ksys_open("/initrd.image",
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 			      O_WRONLY|O_CREAT, 0700);
 		if (fd >= 0) {
 			ssize_t written = xwrite(fd, (char *)initrd_start,
@@ -639,7 +713,11 @@ static int __init populate_rootfs(void)
 				pr_err("/initrd.image: incomplete write (%zd != %ld)\n",
 				       written, initrd_end - initrd_start);
 
+<<<<<<< HEAD
 			sys_close(fd);
+=======
+			ksys_close(fd);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 			free_initrd();
 		}
 	done:

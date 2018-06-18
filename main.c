@@ -51,6 +51,10 @@
 #include <linux/taskstats_kern.h>
 #include <linux/delayacct.h>
 #include <linux/unistd.h>
+<<<<<<< HEAD
+=======
+#include <linux/utsname.h>
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 #include <linux/rmap.h>
 #include <linux/mempolicy.h>
 #include <linux/key.h>
@@ -90,6 +94,10 @@
 #include <linux/cache.h>
 #include <linux/rodata_test.h>
 #include <linux/jump_label.h>
+<<<<<<< HEAD
+=======
+#include <linux/mem_encrypt.h>
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 #include <asm/io.h>
 #include <asm/bugs.h>
@@ -97,6 +105,12 @@
 #include <asm/sections.h>
 #include <asm/cacheflush.h>
 
+<<<<<<< HEAD
+=======
+#define CREATE_TRACE_POINTS
+#include <trace/events/initcall.h>
+
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 static int kernel_init(void *);
 
 extern void init_IRQ(void);
@@ -419,7 +433,11 @@ static noinline void __ref rest_init(void)
 
 	/*
 	 * Enable might_sleep() and smp_processor_id() checks.
+<<<<<<< HEAD
 	 * They cannot be enabled earlier because with CONFIG_PRREMPT=y
+=======
+	 * They cannot be enabled earlier because with CONFIG_PREEMPT=y
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	 * kernel_thread() would trigger might_sleep() splats. With
 	 * CONFIG_PREEMPT_VOLUNTARY=y the init task might have scheduled
 	 * already, but it's stuck on the kthreadd_done completion.
@@ -491,6 +509,20 @@ void __init __weak thread_stack_cache_init(void)
 
 void __init __weak mem_encrypt_init(void) { }
 
+<<<<<<< HEAD
+=======
+bool initcall_debug;
+core_param(initcall_debug, initcall_debug, bool, 0644);
+
+#ifdef TRACEPOINTS_ENABLED
+static void __init initcall_debug_enable(void);
+#else
+static inline void initcall_debug_enable(void)
+{
+}
+#endif
+
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 /*
  * Set up kernel memory allocators
  */
@@ -612,6 +644,12 @@ asmlinkage __visible void __init start_kernel(void)
 	/* Trace events are available after this */
 	trace_init();
 
+<<<<<<< HEAD
+=======
+	if (initcall_debug)
+		initcall_debug_enable();
+
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	context_tracking_init();
 	/* init some links before init_ISA_irqs() */
 	early_irq_init();
@@ -689,6 +727,10 @@ asmlinkage __visible void __init start_kernel(void)
 	cred_init();
 	fork_init();
 	proc_caches_init();
+<<<<<<< HEAD
+=======
+	uts_ns_init();
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	buffer_init();
 	key_init();
 	security_init();
@@ -696,6 +738,10 @@ asmlinkage __visible void __init start_kernel(void)
 	vfs_caches_init();
 	pagecache_init();
 	signals_init();
+<<<<<<< HEAD
+=======
+	seq_file_init();
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	proc_root_init();
 	nsfs_init();
 	cpuset_init();
@@ -728,9 +774,12 @@ static void __init do_ctors(void)
 #endif
 }
 
+<<<<<<< HEAD
 bool initcall_debug;
 core_param(initcall_debug, initcall_debug, bool, 0644);
 
+=======
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 #ifdef CONFIG_KALLSYMS
 struct blacklist_entry {
 	struct list_head next;
@@ -800,6 +849,7 @@ static bool __init_or_module initcall_blacklisted(initcall_t fn)
 #endif
 __setup("initcall_blacklist=", initcall_blacklist);
 
+<<<<<<< HEAD
 static int __init_or_module do_one_initcall_debug(initcall_t fn)
 {
 	ktime_t calltime, delta, rettime;
@@ -817,20 +867,85 @@ static int __init_or_module do_one_initcall_debug(initcall_t fn)
 
 	return ret;
 }
+=======
+static __init_or_module void
+trace_initcall_start_cb(void *data, initcall_t fn)
+{
+	ktime_t *calltime = (ktime_t *)data;
+
+	printk(KERN_DEBUG "calling  %pF @ %i\n", fn, task_pid_nr(current));
+	*calltime = ktime_get();
+}
+
+static __init_or_module void
+trace_initcall_finish_cb(void *data, initcall_t fn, int ret)
+{
+	ktime_t *calltime = (ktime_t *)data;
+	ktime_t delta, rettime;
+	unsigned long long duration;
+
+	rettime = ktime_get();
+	delta = ktime_sub(rettime, *calltime);
+	duration = (unsigned long long) ktime_to_ns(delta) >> 10;
+	printk(KERN_DEBUG "initcall %pF returned %d after %lld usecs\n",
+		 fn, ret, duration);
+}
+
+static ktime_t initcall_calltime;
+
+#ifdef TRACEPOINTS_ENABLED
+static void __init initcall_debug_enable(void)
+{
+	int ret;
+
+	ret = register_trace_initcall_start(trace_initcall_start_cb,
+					    &initcall_calltime);
+	ret |= register_trace_initcall_finish(trace_initcall_finish_cb,
+					      &initcall_calltime);
+	WARN(ret, "Failed to register initcall tracepoints\n");
+}
+# define do_trace_initcall_start	trace_initcall_start
+# define do_trace_initcall_finish	trace_initcall_finish
+#else
+static inline void do_trace_initcall_start(initcall_t fn)
+{
+	if (!initcall_debug)
+		return;
+	trace_initcall_start_cb(&initcall_calltime, fn);
+}
+static inline void do_trace_initcall_finish(initcall_t fn, int ret)
+{
+	if (!initcall_debug)
+		return;
+	trace_initcall_finish_cb(&initcall_calltime, fn, ret);
+}
+#endif /* !TRACEPOINTS_ENABLED */
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 int __init_or_module do_one_initcall(initcall_t fn)
 {
 	int count = preempt_count();
+<<<<<<< HEAD
 	int ret;
 	char msgbuf[64];
+=======
+	char msgbuf[64];
+	int ret;
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 	if (initcall_blacklisted(fn))
 		return -EPERM;
 
+<<<<<<< HEAD
 	if (initcall_debug)
 		ret = do_one_initcall_debug(fn);
 	else
 		ret = fn();
+=======
+	do_trace_initcall_start(fn);
+	ret = fn();
+	do_trace_initcall_finish(fn, ret);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 
 	msgbuf[0] = 0;
 
@@ -874,7 +989,11 @@ static initcall_t *initcall_levels[] __initdata = {
 
 /* Keep these in sync with initcalls in include/linux/init.h */
 static char *initcall_level_names[] __initdata = {
+<<<<<<< HEAD
 	"early",
+=======
+	"pure",
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	"core",
 	"postcore",
 	"arch",
@@ -895,6 +1014,10 @@ static void __init do_initcall_level(int level)
 		   level, level,
 		   NULL, &repair_env_string);
 
+<<<<<<< HEAD
+=======
+	trace_initcall_level(initcall_level_names[level]);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	for (fn = initcall_levels[level]; fn < initcall_levels[level+1]; fn++)
 		do_one_initcall(*fn);
 }
@@ -929,6 +1052,10 @@ static void __init do_pre_smp_initcalls(void)
 {
 	initcall_t *fn;
 
+<<<<<<< HEAD
+=======
+	trace_initcall_level("early");
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	for (fn = __initcall_start; fn < __initcall0_start; fn++)
 		do_one_initcall(*fn);
 }
@@ -981,6 +1108,16 @@ __setup("rodata=", set_debug_rodata);
 static void mark_readonly(void)
 {
 	if (rodata_enabled) {
+<<<<<<< HEAD
+=======
+		/*
+		 * load_module() results in W+X mappings, which are cleaned up
+		 * with call_rcu_sched().  Let's make sure that queued work is
+		 * flushed so that we don't hit false positives looking for
+		 * insecure pages which are W+X.
+		 */
+		rcu_barrier_sched();
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		mark_rodata_ro();
 		rodata_test();
 	} else
@@ -1074,11 +1211,19 @@ static noinline void __init kernel_init_freeable(void)
 	do_basic_setup();
 
 	/* Open the /dev/console on the rootfs, this should never fail */
+<<<<<<< HEAD
 	if (sys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
 		pr_err("Warning: unable to open an initial console.\n");
 
 	(void) sys_dup(0);
 	(void) sys_dup(0);
+=======
+	if (ksys_open((const char __user *) "/dev/console", O_RDWR, 0) < 0)
+		pr_err("Warning: unable to open an initial console.\n");
+
+	(void) ksys_dup(0);
+	(void) ksys_dup(0);
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 	/*
 	 * check if there is an early userspace init.  If yes, let it do all
 	 * the work
@@ -1087,7 +1232,12 @@ static noinline void __init kernel_init_freeable(void)
 	if (!ramdisk_execute_command)
 		ramdisk_execute_command = "/init";
 
+<<<<<<< HEAD
 	if (sys_access((const char __user *) ramdisk_execute_command, 0) != 0) {
+=======
+	if (ksys_access((const char __user *)
+			ramdisk_execute_command, 0) != 0) {
+>>>>>>> 4d3b1e43813a8f4f3a1853cecce960d693dee749
 		ramdisk_execute_command = NULL;
 		prepare_namespace();
 	}
