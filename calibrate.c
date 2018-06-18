@@ -4,7 +4,7 @@
  * Excised from init/main.c
  *  Copyright (C) 1991, 1992  Linus Torvalds
  */
-
+//ffsgg
 #include <linux/jiffies.h>
 #include <linux/delay.h>
 #include <linux/init.h>
